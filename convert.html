@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Number Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Random Number Game</h1>
+        <button id="startButton">Start</button>
+        <div id="stopwatch">00:00.00</div>
+        <div id="numberDisplay">Press start to begin</div>
+        <div id="buttons">
+            <button class="choice" data-letter="A">A</button>
+            <button class="choice" data-letter="B">B</button>
+            <button class="choice" data-letter="C">C</button>
+            <button class="choice" data-letter="D">D</button>
+            <button class="choice" data-letter="E">E</button>
+            <button class="choice" data-letter="F">F</button>
+            <button class="choice" data-letter="G">G</button>
+            <button class="choice" data-letter="H">H</button>
+            <button class="choice" data-letter="I">I</button>
+            <button class="choice" data-letter="J">J</button>
+            <button class="choice" data-letter="K">K</button>
+            <button class="choice" data-letter="O">O</button>
+        </div>
+        <div id="result"></div>
+        <div>
+            <label for="gameMode">Select Game Mode:</label>
+            <select id="gameMode">
+                <option value="original">Original</option>
+                <option value="harder">Harder</option>
+            </select>
+        </div>
+        <div>
+            <h2>Top Times</h2>
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <h3>Easier</h3>
+                    <ul id="easierTopTimes"></ul>
+                </div>
+                <div>
+                    <h3>Harder</h3>
+                    <ul id="harderTopTimes"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="convert.js"></script>
+</body>
+
+</html>
