@@ -1,27 +1,35 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const startButton = document.getElementById("startButton");
-    const stopwatch = document.getElementById("stopwatch");
-    const numberDisplay = document.getElementById("numberDisplay");
-    const buttons = document.querySelectorAll(".choice");
-    const resultDiv = document.getElementById("result");
-    const gameModeSelect = document.getElementById("gameMode");
-    const easierTopTimes = document.getElementById("easierTopTimes");
-    const harderTopTimes = document.getElementById("harderTopTimes");
+document.addEventListener('DOMContentLoaded', function () {
+    const startButton = document.getElementById('startButton');
+    const stopwatch = document.getElementById('stopwatch');
+    const numberDisplay = document.getElementById('numberDisplay');
+    const buttons = document.querySelectorAll('.choice');
+    const resultDiv = document.getElementById('result');
+    const gameModeSelect = document.getElementById('gameMode');
+    const easierTopTimes = document.getElementById('easierTopTimes');
+    const harderTopTimes = document.getElementById('harderTopTimes');
+    const sessionAttempts = document.getElementById('sessionAttempts');
+    const totalAttempts = document.getElementById('totalAttempts');
+    const sightBlocker = document.getElementById('sightblocker');
 
     let timer;
     let startTime;
     let currentIndex = 0;
+    let sesAttempts = 0;
+    let interruptions = getCookie('interruptions') || -1;
+    let totAttempts = getCookie('totalNumberOfAttempts') || 0;
+    totalAttempts.innerText = totAttempts;
     let numbers = [];
     let userAnswers = [];
     let correctAnswers = [];
-    let currentGameMode = getCookie("gameMode") || 'original'; // Default to original mode
+    let currentGameMode = getCookie('gameMode') || 'original'; // Default to original mode
 
     gameModeSelect.value = currentGameMode; // Set select to the last saved mode
+    totAttempts.innerText = totAttempts;
     loadTopTimes();
 
     const numberToLetter = {
-        0: "O", 1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "F", 7: "G", 8: "H", 9: "I", 10: "J", 11: "K", 12: "O",
-        "-11": "A", "-10": "B", "-9": "C", "-8": "D", "-7": "E", "-6": "F", "-5": "G", "-4": "H", "-3": "I", "-2": "J", "-1": "K"
+        0: 'O', 1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E', 6: 'F', 7: 'G', 8: 'H', 9: 'I', 10: 'J', 11: 'K', 12: 'O',
+        '-11': 'A', '-10': 'B', '-9': 'C', '-8': 'D', '-7': 'E', '-6': 'F', '-5': 'G', '-4': 'H', '-3': 'I', '-2': 'J', '-1': 'K'
     };
 
     function startStopwatch() {
@@ -43,12 +51,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function generateRandomNumber() {
-        return Math.floor(Math.random() * 23) - 11;
+        return Math.floor(Math.random() * 12) - 5;
     }
 
     function generateAdditionProblem() {
-        const num1 = Math.floor(Math.random() * 12) - 5; // from -5 to 6
-        const num2 = Math.floor(Math.random() * 12) - 5; // from -5 to 6
+        const num1 = generateRandomNumber();
+        const num2 = generateRandomNumber();
         return {
             problem: `${num1} + ${num2}`,
             result: num1 + num2
@@ -57,6 +65,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function showNextNumber() {
         if (currentIndex < 6) {
+            setCookie('gameRunning', 'true', 365);
             let number, letter, problem;
             if (currentGameMode === 'harder' && (currentIndex === 0 || currentIndex === 3)) {
                 const additionProblem = generateAdditionProblem();
@@ -72,8 +81,10 @@ document.addEventListener("DOMContentLoaded", function () {
             correctAnswers.push(letter);
             currentIndex++;
         } else {
+            setCookie('gameRunning', 'false', 365);
             stopStopwatch();
             displayResults();
+            resetGame();
         }
     }
 
@@ -101,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         resultDiv.innerHTML = resultHTML;
 
-        if (accuracy === "100.00") {
+        if (accuracy === '100.00') {
             saveTime(stopwatch.textContent);
         } else {
             resultDiv.innerHTML += `<p>Your time was not added to the top times list because your accuracy was not 100%.</p>`;
@@ -109,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function handleChoiceClick(event) {
-        const letter = event.target.getAttribute("data-letter");
+        const letter = event.target.getAttribute('data-letter');
         userAnswers.push(letter);
         showNextNumber();
     }
@@ -155,26 +166,50 @@ document.addEventListener("DOMContentLoaded", function () {
         document.cookie = `${name}=${value}; ${expires}; path=/`;
     }
 
-    startButton.addEventListener("click", () => {
+    function resetGame() {
+        startButton.disabled = false;
+    }
+
+    startButton.addEventListener('click', () => {
         startButton.disabled = true;
         currentIndex = 0;
         numbers = [];
         userAnswers = [];
         correctAnswers = [];
         resultDiv.innerHTML = ''; // Clear previous results
-        numberDisplay.textContent = "Get ready!";
+        numberDisplay.textContent = 'Get ready!';
         setTimeout(() => {
             startStopwatch();
             showNextNumber();
         }, 1000);
+        sesAttempts++;
+        totAttempts++;
+        sessionAttempts.innerText = sesAttempts;
+        totalAttempts.innerText = totAttempts;
+        setCookie('totalNumberOfAttempts', totAttempts, 365);
     });
 
-    gameModeSelect.addEventListener("change", (event) => {
+    gameModeSelect.addEventListener('change', (event) => {
         currentGameMode = event.target.value;
-        setCookie("gameMode", currentGameMode, 365);
+        setCookie('gameMode', currentGameMode, 365);
     });
 
     buttons.forEach(button => {
-        button.addEventListener("click", handleChoiceClick);
+        button.addEventListener('click', handleChoiceClick);
     });
+
+    if ((performance.navigation.type == performance.navigation.TYPE_RELOAD) && (getCookie('gameRunning') == 'true')) {
+        if (interruptions >= 10) {
+            document.getElementById('container').style.display = 'none';
+            sightBlocker.style.display = 'block';
+            startButton.disabled = true;
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+        } else {
+            interruptions++;
+            setCookie('interruptions', interruptions, 0.00347222);
+        }
+        console.info("This page is reloaded");
+    }
 });
